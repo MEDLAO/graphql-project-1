@@ -27,6 +27,14 @@ class Query:
             Movie(id=2, title="Interstellar", year=2014, rating=4.6)
         ]
 
+    @strawberry.field
+    def movie(self, id: int) -> Movie | None:
+        # Reuse the current list from movies() and search by id
+        for m in self.movies():
+            if m.id == id:
+                return m
+        return None
+
 
 # Create the GraphQL schema object
 # This registers the Query type as the root for all queries.
