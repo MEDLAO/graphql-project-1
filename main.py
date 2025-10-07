@@ -17,6 +17,8 @@ MOVIES = [
     Movie(id=1, title="Inception", year=2010, rating=4.8),
     Movie(id=2, title="Interstellar", year=2014, rating=4.6),
 ]
+# ID counter for new movies
+NEXT_ID = 3
 
 
 # GraphQL Query type
@@ -39,10 +41,22 @@ class Query:
         return None
 
 
+@strawberry.type
+class Mutation:
+    @strawberry.field
+    def add_movie(self, title: str, year: int, rating: float) -> Movie:
+        """Create a new movie and return it"""
+        global NEXT_ID
+        new_movie = Movie(id=NEXT_ID, title=title, year=year, rating=rating)
+        MOVIES.append(new_movie)
+        NEXT_ID += 1
+        return new_movie
+
+
 # Create the GraphQL schema object
 # This registers the Query type as the root for all queries.
 # The schema ties together our type definitions (Movie) and resolvers (movies).
-schema = strawberry.Schema(query=Query)
+schema = strawberry.Schema(query=Query, mutation=Mutation)
 
 
 app = FastAPI()
