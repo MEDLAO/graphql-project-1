@@ -13,6 +13,12 @@ class Movie:
     rating: float
 
 
+MOVIES = [
+    Movie(id=1, title="Inception", year=2010, rating=4.8),
+    Movie(id=2, title="Interstellar", year=2014, rating=4.6),
+]
+
+
 # GraphQL Query type
 # Acts as the entry point for clients to fetch data.
 # The "movies" field is a resolver function:
@@ -22,15 +28,12 @@ class Movie:
 class Query:
     @strawberry.field
     def movies(self) -> list[Movie]:
-        return [
-            Movie(id=1, title="Inception", year=2010, rating=4.8),
-            Movie(id=2, title="Interstellar", year=2014, rating=4.6)
-        ]
+        return MOVIES
 
     @strawberry.field
     def movie(self, id: int) -> Movie | None:
-        # Reuse the current list from movies() and search by id
-        for m in self.movies():
+        """Fetch a single movie by its ID"""
+        for m in MOVIES:
             if m.id == id:
                 return m
         return None
