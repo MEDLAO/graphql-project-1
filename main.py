@@ -1,6 +1,7 @@
 import strawberry
 from fastapi import FastAPI
 from strawberry.fastapi import GraphQLRouter
+from dataclasses import asdict
 
 
 # GraphQL type definition for Movie
@@ -11,6 +12,23 @@ class Movie:
     title: str
     year: int
     rating: float
+
+
+# GraphQL input object (for arguments)
+@strawberry.input
+class UpdateMovieInput:
+    id: int
+    title: str | None = None
+    year: int | None = None
+    rating: float | None = None
+
+
+# normal GraphQL object (response shape)
+@strawberry.type
+class UpdateMoviePayload:
+    ok: bool
+    error: str | None
+    movie: Movie | None
 
 
 MOVIES = [
@@ -59,6 +77,12 @@ class Mutation:
             if m.id == id:
                 return MOVIES.pop(i)
         return None
+
+    @strawberry.field
+    def update_movie(self, input: UpdateMovieInput) -> UpdateMoviePayload:
+        """Partially update a movie and return status + updated object"""
+
+        # 1 - Find the movie by id
 
 
 # Create the GraphQL schema object
