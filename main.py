@@ -52,6 +52,14 @@ class Mutation:
         NEXT_ID += 1
         return new_movie
 
+    @strawberry.field
+    def delete_movie(self, id: int) -> Movie | None:
+        """Remove a movie by ID and return the deleted movie (or None if not found)"""
+        for i, m in enumerate(MOVIES):
+            if m.id == id:
+                return MOVIES.pop(i)
+        return None
+
 
 # Create the GraphQL schema object
 # This registers the Query type as the root for all queries.
