@@ -82,7 +82,14 @@ class Mutation:
     def update_movie(self, input: UpdateMovieInput) -> UpdateMoviePayload:
         """Partially update a movie and return status + updated object"""
 
-        # 1 - Find the movie by id
+        # 1 - Find the movie by id (first match or None)
+        target = next((m for m in MOVIES if m.id == input.id), None)
+        if target is None:
+            return UpdateMoviePayload(ok=False, error="Rating must be between 0 and 5", movie=None)
+
+        # 2 - Validate inputs
+        if input.rating is not None and not (0.0 <= input.rating <= 5.0):
+            return UpdateMoviePayload(ok=False, error="Rating must be between 0 and 5", movie=None)
 
 
 # Create the GraphQL schema object
