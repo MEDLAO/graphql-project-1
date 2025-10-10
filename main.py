@@ -91,6 +91,16 @@ class Mutation:
         if input.rating is not None and not (0.0 <= input.rating <= 5.0):
             return UpdateMoviePayload(ok=False, error="Rating must be between 0 and 5", movie=None)
 
+        # 3 - Apply only provided fields (generic and scalable)
+        data = asdict(input)
+        data.pop("id", None)
+        for field_name, value in data.items():
+            if value is not None:
+                setattr(target, field_name, value)
+
+        # 4 - Return structured result
+        return UpdateMoviePayload(ok=True, error=None, movie=target)
+
 
 # Create the GraphQL schema object
 # This registers the Query type as the root for all queries.
