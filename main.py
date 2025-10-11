@@ -4,7 +4,7 @@ from strawberry.fastapi import GraphQLRouter
 from dataclasses import asdict
 
 
-# GraphQL type definition for Movie
+# GraphQL type definition for Actor and Movie
 @strawberry.type
 class Actor:
     id: int
@@ -98,6 +98,10 @@ class Query:
     @strawberry.field
     def movies(self) -> list[Movie]:
         return MOVIES
+
+    @strawberry.field
+    def actors(self) -> list[Actor]:
+        return ACTORS
 
     @strawberry.field
     def movie(self, id: int) -> Movie | None:
