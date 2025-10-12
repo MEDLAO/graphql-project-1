@@ -33,6 +33,44 @@ class Movie:
         return [a for a in ACTORS if a.movie_id == self.id]
 
 
+@strawberry.input
+class AddActorInput:
+    name: str
+    movie_id: int
+
+
+@strawberry.type
+class AddActorPayload:
+    name: str
+    movie_id: int
+
+
+@strawberry.input
+class UpdateActorInput:
+    id: int
+    name: str | None = None
+    movie_id: int | None = None
+
+
+@strawberry.type
+class UpdateActorPayload:
+    ok: bool
+    error: str | None
+    actor: Actor | None
+
+
+@strawberry.input
+class DeleteActorInput:
+    id: int
+
+
+@strawberry.type
+class DeleteActorPayload:
+    ok: bool
+    error: str | None
+    actor: Actor | None
+
+
 # what the client sends to create a movie
 @strawberry.input
 class AddMovieInput:
@@ -114,7 +152,42 @@ class Query:
 
 @strawberry.type
 class Mutation:
-    @strawberry.field
+    @strawberry.mutation
+    def add_actor(self, input: AddActorInput) -> Actor:
+        """Create a new actor and link it to a movie"""
+        new_id = max((a.id for a in ACTORS), default=0) + 1
+        new_actor = Actor(id=new_id, name=input.name, movie_id=input.movie_id)
+        ACTORS.append(new_actor)
+        return new_actor
+
+    @strawberry.mutation
+    def delete_actor(self, input: DeleteActorInput) -> DeleteActorPayload:
+        for i, a in enumerate(ACTORS):
+            if a.id == input.id:
+                removed = ACTORS.pop(i)
+                return DeleteActorPayload(ok=True, error=None, actor=removed)
+        return DeleteActorPayload(ok=False, error="Actor not found", actor=None)
+
+    @strawberry.mutation
+    def update_actor(self, input: UpdateActorInput) -> UpdateActorPayload:
+        """Partially update an actor and return status + updated object"""
+
+        # 1 - Find the actor by id
+        target = next((a for a in ACTORS if a.id == input.id), None)
+        if target is None:
+            return UpdateActorPayload(ok=False, error="Actor not found", actor=None)
+
+        # 2 - Apply only provided fields
+        data = asdict(input)
+        data.pop("id", None)
+        for field_name, value in data.items():
+            if value is not None:
+                setattr(target, field_name, value)
+
+        # 3 - Return structured result
+        return UpdateActorPayload(ok=True, error=None, actor=target)
+
+    @strawberry.mutation
     def add_movie(self, input: AddMovieInput) -> AddMoviePayload:
         """Create a movie with basic validation and return a payload"""
         global NEXT_ID
@@ -133,7 +206,7 @@ class Mutation:
         # structured response
         return AddMoviePayload(ok=True, error=None, movie=new_movie)
 
-    @strawberry.field
+    @strawberry.mutation
     def delete_movie(self, input: DeleteMovieInput) -> DeleteMoviePayload:
         """Remove a movie by ID and return a structured payload"""
         for i, m in enumerate(MOVIES):
@@ -143,7 +216,7 @@ class Mutation:
         # Not found
         return DeleteMoviePayload(ok=False, error="Movie not found", movie=None)
 
-    @strawberry.field
+    @strawberry.mutation
     def update_movie(self, input: UpdateMovieInput) -> UpdateMoviePayload:
         """Partially update a movie and return status + updated object"""
 
