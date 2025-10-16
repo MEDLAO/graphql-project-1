@@ -22,5 +22,21 @@ def create_session(user_id: int) -> str:
         "user_id": user_id,  # who owns this session
         "expires_at": _now() + timedelta(minutes=SESSION_TTL_MINUTES),  # expiry timestamp (UTC)
     }
-    return sid
+    return sid  # caller (login route) will set this value in an HttpOnly cookie
+
+
+def get_user_id(session_id: Optional[str]) -> Optional[int]:
+    """Return the user_id if the session is valid and not expired."""
+    if not session_id:                    # no cookie sent
+        return None
+
+    data = _SESSIONS.get(session_id)      # find this session
+    if not data:                          # unknown id
+        return None
+
+    if data["expires_at"] < _now():       # expired session
+        _SESSIONS.pop(session_id, None)   # remove it
+        return None
+
+    return int(data["user_id"])           # valid -> return linked user
 
