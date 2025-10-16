@@ -40,3 +40,9 @@ def get_user_id(session_id: Optional[str]) -> Optional[int]:
 
     return int(data["user_id"])           # valid -> return linked user
 
+
+def delete_session(session_id: Optional[str]) -> None:
+    """Invalidate a session (used on logout)."""
+    if session_id:                       # if a cookie value was sent
+        _SESSIONS.pop(session_id, None)  # remove it from the in-memory store (no error if missing)
+
