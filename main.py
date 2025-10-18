@@ -36,3 +36,9 @@ async def login(payload: LoginInput, response: Response):
     user = get_user_by_email(payload.email)
 
     # 2 - check user exists, is active and password matches
+    if not user or not user.is_active or not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")  # generic error (no leaks)
+
+    # 3 - create a server-side session and get an opaque session_id
+    session_id = create_session(user.id)
+
