@@ -42,3 +42,16 @@ async def login(payload: LoginInput, response: Response):
     # 3 - create a server-side session and get an opaque session_id
     session_id = create_session(user.id)
 
+    # 4 - store session_id in a cookie so the browser sends it automatically later
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=session_id,
+        httponly=COOKIE_HTTPONLY,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
+        path=COOKIE_PATH,
+    )
+
+    # 5 - small JSON response for the client
+    return {"ok": True}
+
