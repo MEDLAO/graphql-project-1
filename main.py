@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel
 from strawberry.fastapi import GraphQLRouter
 from graphql.schema import schema
 from auth.users import get_user_by_email, verify_password
-from auth.sessions import create_session
+from auth.sessions import create_session, delete_session
 
 
 app = FastAPI()
@@ -54,4 +54,28 @@ async def login(payload: LoginInput, response: Response):
 
     # 5 - small JSON response for the client
     return {"ok": True}
+
+
+@app.post("/logout")
+async def logout(request: Request, response: Response):
+    """Logout current user: remove session and clear cookie."""
+    # 1 - Read the cookie from the incoming request
+    session_id = request.cookies.get(COOKIE_NAME)
+
+    # 2 - Delete the session from the server-side store (if it exists)
+    delete_session(session_id)
+
+    # 3 - Instruct browser to remove it's cookie
+    response.delete_cookie(
+        key=COOKIE_NAME,
+        path=COOKIE_PATH,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
+    )
+
+    # 4 - Return confirmation
+    return {"ok": True}
+
+
+
 
