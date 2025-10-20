@@ -24,3 +24,19 @@ _USERS: list[User] = [
     )
 ]
 
+
+def get_user_by_email(email: str) -> User | None:
+    """Return the User object matching the given email, or None."""
+    for user in _USERS:
+        if user.email == email:
+            return user
+    return None
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Compare plain pasword with stored bcrypt hash."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+
+
