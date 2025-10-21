@@ -65,7 +65,7 @@ async def logout(request: Request, response: Response):
     # 2 - Delete the session from the server-side store (if it exists)
     delete_session(session_id)
 
-    # 3 - Instruct browser to remove it's cookie
+    # 3 - Instruct browser to remove its cookie
     response.delete_cookie(
         key=COOKIE_NAME,
         path=COOKIE_PATH,
