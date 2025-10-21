@@ -38,5 +38,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
+def get_user_by_id(user_id: int) -> User | None:
+    """Return the User object with this id, or None if not found."""
+    for user in _USERS:
+        if user.id == user_id:
+            return user
+    return None
+
+
 
 
