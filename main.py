@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel
 from strawberry.fastapi import GraphQLRouter
 from graphql.schema import schema
-from auth.users import get_user_by_email, verify_password
-from auth.sessions import create_session, delete_session
+from auth.users import get_user_by_email, verify_password, get_user_by_id
+from auth.sessions import create_session, delete_session, get_user_id
 
 
 app = FastAPI()
@@ -17,7 +17,7 @@ COOKIE_SECURE = False       # set True in production (HTTPS only)
 COOKIE_HTTPONLY = True      # hides cookie from JS (XSS protection)
 
 # Turn the schema into a GraphQL route
-graphql_app = GraphQLRouter(schema)
+graphql_app = GraphQLRouter(schema,  context_getter=get_context)
 
 # Mount the GraphQL route at /graphql
 app.include_router(graphql_app, prefix="/graphql")
@@ -79,10 +79,8 @@ async def logout(request: Request, response: Response):
 
 # This runs once per GraphQL request to build a tiny "context" object
 async def get_context(request: Request):
-    class Context:
-        """Simple container passed to every resolver as info.context"""
-        pass
+    # try to read the 'session_id' cookie sent by the browser
+    session_id = request.cookies.get(COOKIE_NAME)
 
-    ctx = Context()
-    ctx.user = None  # default: anonymous (we'll fill it next steps)
-    return ctx
+    # find which user owns this session (if any)
+    user_id = get_user_id(session_id)
