@@ -79,8 +79,11 @@ async def logout(request: Request, response: Response):
 
 # This runs once per GraphQL request to build a tiny "context" object
 async def get_context(request: Request):
-    # try to read the 'session_id' cookie sent by the browser
+    # 1 - try to read the 'session_id' cookie sent by the browser
     session_id = request.cookies.get(COOKIE_NAME)
 
-    # find which user owns this session (if any)
+    # 2 - find which user owns this session (if any)
     user_id = get_user_id(session_id)
+
+    # 3 - load the actual User object when we have a valid user_id, else stay anonymous
+    user = get_user_by_id(user_id) if user_id else None
