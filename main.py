@@ -77,5 +77,12 @@ async def logout(request: Request, response: Response):
     return {"ok": True}
 
 
+# This runs once per GraphQL request to build a tiny "context" object
+async def get_context(request: Request):
+    class Context:
+        """Simple container passed to every resolver as info.context"""
+        pass
 
-
+    ctx = Context()
+    ctx.user = None  # default: anonymous (we'll fill it next steps)
+    return ctx
