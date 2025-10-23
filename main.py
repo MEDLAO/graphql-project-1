@@ -87,3 +87,15 @@ async def get_context(request: Request):
 
     # 3 - load the actual User object when we have a valid user_id, else stay anonymous
     user = get_user_by_id(user_id) if user_id else None
+
+    # 4 - small container for per-request data
+    class Context:
+        """Holds data resolvers can read via info.context"""
+        pass
+
+    # 5 - attach what resolvers may need
+    ctx = Context()
+    ctx.user = user  # resolvers will check info.context.user
+    ctx.session_id = session_id  # optional: helpful for debugging
+    ctx.user_id = user_id  # optional
+    return ctx
