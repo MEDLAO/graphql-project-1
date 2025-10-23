@@ -1,5 +1,6 @@
 import strawberry
 from dataclasses import asdict
+from auth.utils import require_login
 
 
 # GraphQL type definition for Actor and Movie
@@ -151,15 +152,17 @@ class Query:
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def add_actor(self, input: AddActorInput) -> Actor:
+    def add_actor(self, info, input: AddActorInput) -> Actor:
         """Create a new actor and link it to a movie"""
+        require_login(info)
         new_id = max((a.id for a in ACTORS), default=0) + 1
         new_actor = Actor(id=new_id, name=input.name, movie_id=input.movie_id)
         ACTORS.append(new_actor)
         return new_actor
 
     @strawberry.mutation
-    def delete_actor(self, input: DeleteActorInput) -> DeleteActorPayload:
+    def delete_actor(self, info, input: DeleteActorInput) -> DeleteActorPayload:
+        require_login(info)
         for i, a in enumerate(ACTORS):
             if a.id == input.id:
                 removed = ACTORS.pop(i)
@@ -167,9 +170,9 @@ class Mutation:
         return DeleteActorPayload(ok=False, error="Actor not found", actor=None)
 
     @strawberry.mutation
-    def update_actor(self, input: UpdateActorInput) -> UpdateActorPayload:
+    def update_actor(self, info, input: UpdateActorInput) -> UpdateActorPayload:
         """Partially update an actor and return status + updated object"""
-
+        require_login(info)
         # 1 - Find the actor by id
         target = next((a for a in ACTORS if a.id == input.id), None)
         if target is None:
@@ -186,8 +189,9 @@ class Mutation:
         return UpdateActorPayload(ok=True, error=None, actor=target)
 
     @strawberry.mutation
-    def add_movie(self, input: AddMovieInput) -> AddMoviePayload:
+    def add_movie(self, info, input: AddMovieInput) -> AddMoviePayload:
         """Create a movie with basic validation and return a payload"""
+        require_login(info)
         global NEXT_ID
 
         # basic validation
@@ -205,8 +209,9 @@ class Mutation:
         return AddMoviePayload(ok=True, error=None, movie=new_movie)
 
     @strawberry.mutation
-    def delete_movie(self, input: DeleteMovieInput) -> DeleteMoviePayload:
+    def delete_movie(self, info, input: DeleteMovieInput) -> DeleteMoviePayload:
         """Remove a movie by ID and return a structured payload"""
+        require_login(info)
         for i, m in enumerate(MOVIES):
             if m.id == input.id:
                 removed = MOVIES.pop(i)
@@ -215,9 +220,9 @@ class Mutation:
         return DeleteMoviePayload(ok=False, error="Movie not found", movie=None)
 
     @strawberry.mutation
-    def update_movie(self, input: UpdateMovieInput) -> UpdateMoviePayload:
+    def update_movie(self, info, input: UpdateMovieInput) -> UpdateMoviePayload:
         """Partially update a movie and return status + updated object"""
-
+        require_login(info)
         # 1 - Find the movie by id (first match or None)
         target = next((m for m in MOVIES if m.id == input.id), None)
         if target is None:

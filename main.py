@@ -4,6 +4,7 @@ from strawberry.fastapi import GraphQLRouter
 from graphql.schema import schema
 from auth.users import get_user_by_email, verify_password, get_user_by_id
 from auth.sessions import create_session, delete_session, get_user_id
+from auth.utils import require_login
 
 
 app = FastAPI()
