@@ -2,7 +2,7 @@ from dataclasses import dataclass              # simple, typed container for use
 from passlib.context import CryptContext       # provides bcrypt hashing/verification
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 @dataclass
@@ -44,7 +44,3 @@ def get_user_by_id(user_id: int) -> User | None:
         if user.id == user_id:
             return user
     return None
-
-
-
-

@@ -1,7 +1,13 @@
 
+
 def require_login(info):
-    """Raise if user not logged in, else return the user."""
-    user = info.context.user
-    if user is None:
-        raise Exception("Please log in.")
+    """Ensure the user is authenticated before running a mutation."""
+    # 1 - get user from the context (dict from get_context)
+    user = info.context.get("user")
+
+    # 2 - if no user, raise an auth error
+    if not user:
+        raise Exception("Login required")
+
+    # 3 - otherwise, return the user (optional, can be used by resolvers)
     return user

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel
 from strawberry.fastapi import GraphQLRouter
-from graphql.schema import schema
+from app_graphql.schema import schema
 from auth.users import get_user_by_email, verify_password, get_user_by_id
 from auth.sessions import create_session, delete_session, get_user_id
 from auth.utils import require_login
@@ -16,6 +16,27 @@ COOKIE_PATH = "/"           # valid for the whole site
 COOKIE_SAMESITE = "lax"     # good default to reduce CSRF risk
 COOKIE_SECURE = False       # set True in production (HTTPS only)
 COOKIE_HTTPONLY = True      # hides cookie from JS (XSS protection)
+
+
+# This runs once per GraphQL request to build a tiny "context" object
+async def get_context(request: Request):
+    # 1 - try to read the 'session_id' cookie sent by the browser
+    session_id = request.cookies.get(COOKIE_NAME)
+
+    # 2 - find which user owns this session (if any)
+    user_id = get_user_id(session_id)
+
+    # 3 - load the actual User object when we have a valid user_id, else stay anonymous
+    user = get_user_by_id(user_id) if user_id else None
+
+    # 4 - return a small dict that resolvers can read via info.context
+    return {
+        "request": request,
+        "user": user,
+        "session_id": session_id,
+        "user_id": user_id,
+    }
+
 
 # Turn the schema into a GraphQL route
 graphql_app = GraphQLRouter(schema,  context_getter=get_context)
@@ -76,27 +97,3 @@ async def logout(request: Request, response: Response):
 
     # 4 - Return confirmation
     return {"ok": True}
-
-
-# This runs once per GraphQL request to build a tiny "context" object
-async def get_context(request: Request):
-    # 1 - try to read the 'session_id' cookie sent by the browser
-    session_id = request.cookies.get(COOKIE_NAME)
-
-    # 2 - find which user owns this session (if any)
-    user_id = get_user_id(session_id)
-
-    # 3 - load the actual User object when we have a valid user_id, else stay anonymous
-    user = get_user_by_id(user_id) if user_id else None
-
-    # 4 - small container for per-request data
-    class Context:
-        """Holds data resolvers can read via info.context"""
-        pass
-
-    # 5 - attach what resolvers may need
-    ctx = Context()
-    ctx.user = user  # resolvers will check info.context.user
-    ctx.session_id = session_id  # optional: helpful for debugging
-    ctx.user_id = user_id  # optional
-    return ctx
