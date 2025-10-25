@@ -3,6 +3,15 @@ from dataclasses import asdict
 from auth.utils import require_login
 
 
+@
+
+@strawberry.type
+class LoginPayload:
+    """Shape of the data returned by the login mutation."""
+    ok: bool  # True if login succeeded
+    error: str | None = None  # Error message when login fails (None on success)
+
+
 # GraphQL type definition for Actor and Movie
 @strawberry.type
 class Actor:
