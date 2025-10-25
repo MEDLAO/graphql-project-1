@@ -3,7 +3,12 @@ from dataclasses import asdict
 from auth.utils import require_login
 
 
-@
+@strawberry.input
+class LoginInput:
+    """Shape of the data the client sends for login."""
+    email: str
+    password: str
+
 
 @strawberry.type
 class LoginPayload:
