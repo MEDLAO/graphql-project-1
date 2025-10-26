@@ -19,7 +19,7 @@ COOKIE_HTTPONLY = True      # hides cookie from JS (XSS protection)
 
 
 # This runs once per GraphQL request to build a tiny "context" object
-async def get_context(request: Request):
+async def get_context(request: Request, response: Response):
     # 1 - try to read the 'session_id' cookie sent by the browser
     session_id = request.cookies.get(COOKIE_NAME)
 
@@ -32,6 +32,7 @@ async def get_context(request: Request):
     # 4 - return a small dict that resolvers can read via info.context
     return {
         "request": request,
+        "response": response,
         "user": user,
         "session_id": session_id,
         "user_id": user_id,

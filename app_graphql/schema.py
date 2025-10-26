@@ -1,6 +1,9 @@
 import strawberry
 from dataclasses import asdict
 from auth.utils import require_login
+from auth.users import get_user_by_email, verify_password
+from auth.sessions import create_session
+from main import COOKIE_NAME
 
 
 @strawberry.input
@@ -165,6 +168,39 @@ class Query:
 
 @strawberry.type
 class Mutation:
+    @strawberry.mutation
+    def login(self, info, input: LoginInput) -> LoginPayload:
+        """
+        GraphQL login
+        1 - verify credentials
+        2 - create a server-side session
+        3 - set HttpOnly cookie on the response
+        """
+
+        # 1 - find user by email (None if not found)
+        user = get_user_by_email(input.email)
+
+        # 2 - validate user + password (bcrypt)
+        if not user or not user.is_active or not verify_password(input.password,
+                                                                 user.hashed_password):
+            # short, generic error to avoid leaking which check failed
+            return LoginPayload(ok=False, error="Invalid credentials")
+
+        # 3 - create session on the server (returns opaque session_id)
+        session_id = create_session(user.id)
+
+        # 4 - set cookie in the outgoing HTTP response (from context)
+        info.context["response"].set_cookie(
+            key=COOKIE_NAME,  # e.g. "session_id"
+            value=session_id,  # random opaque token (maps to user server-side)
+            httponly=True,  # hide from JS (mitigates XSS)
+            samesite="lax",  # reduce CSRF risk (good default for same-site apps)
+            secure=False,  # set True in production (HTTPS only)
+            path="/",  # cookie valid site-wide
+        )
+
+        return LoginPayload(ok=True)
+
     @strawberry.mutation
     def add_actor(self, info, input: AddActorInput) -> Actor:
         """Create a new actor and link it to a movie"""
