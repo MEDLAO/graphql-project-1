@@ -1,5 +1,4 @@
 
-
 def require_login(info):
     """Ensure the user is authenticated before running a mutation."""
     # 1 - get user from the context (dict from get_context)

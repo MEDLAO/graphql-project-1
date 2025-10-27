@@ -4,18 +4,11 @@ from strawberry.fastapi import GraphQLRouter
 from app_graphql.schema import schema
 from auth.users import get_user_by_email, verify_password, get_user_by_id
 from auth.sessions import create_session, delete_session, get_user_id
+from config import COOKIE_NAME, COOKIE_PATH, COOKIE_SAMESITE, COOKIE_SECURE, COOKIE_HTTPONLY
 from auth.utils import require_login
 
 
 app = FastAPI()
-
-
-# ----- Cookie settings (simple default dev) -----
-COOKIE_NAME = "session_id"  # the cookie key the browser will store
-COOKIE_PATH = "/"           # valid for the whole site
-COOKIE_SAMESITE = "lax"     # good default to reduce CSRF risk
-COOKIE_SECURE = False       # set True in production (HTTPS only)
-COOKIE_HTTPONLY = True      # hides cookie from JS (XSS protection)
 
 
 # This runs once per GraphQL request to build a tiny "context" object
