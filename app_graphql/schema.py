@@ -6,6 +6,13 @@ from auth.sessions import create_session
 from config import COOKIE_NAME
 
 
+@strawberry.type
+class User:
+    id: int
+    email: str
+    is_active: bool
+
+
 @strawberry.input
 class LoginInput:
     """Shape of the data the client sends for login."""
@@ -165,6 +172,11 @@ class Query:
                 return m
         return None
 
+    @strawberry.field
+    def me(self, info) -> User | None:
+        """Return the current logged-in user, or None if anonymous."""
+        return info.context["user"]
+
 
 @strawberry.type
 class Mutation:
@@ -297,4 +309,3 @@ class Mutation:
 # This registers the Query type as the root for all queries.
 # The schema ties together our type definitions (Movie) and resolvers (movies).
 schema = strawberry.Schema(query=Query, mutation=Mutation)
-
