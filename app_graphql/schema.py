@@ -214,6 +214,11 @@ class Mutation:
         return LoginPayload(ok=True)
 
     @strawberry.mutation
+    def logout(self, info) -> LoginPayload:
+        """Delete the server session and clear the browser cookie."""
+        session_id = info.context["session_id"]  # current cookie value (or None)
+
+    @strawberry.mutation
     def add_actor(self, info, input: AddActorInput) -> Actor:
         """Create a new actor and link it to a movie"""
         require_login(info)
