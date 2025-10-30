@@ -2,7 +2,7 @@ import strawberry
 from dataclasses import asdict
 from auth.utils import require_login
 from auth.users import get_user_by_email, verify_password
-from auth.sessions import create_session
+from auth.sessions import create_session, delete_session
 from config import COOKIE_NAME
 
 
@@ -217,6 +217,16 @@ class Mutation:
     def logout(self, info) -> LoginPayload:
         """Delete the server session and clear the browser cookie."""
         session_id = info.context["session_id"]  # current cookie value (or None)
+        if session_id:
+            delete_session(session_id)  # remove from server-side store
+
+        info.context["response"].delete_cookie(  # tell browser to remove it
+            key=COOKIE_NAME,
+            path="/",
+            samesite=COOKIE_SAMESITE,
+            secure=COOKIE_SECURE,
+        )
+        return LoginPayload(ok=True)
 
     @strawberry.mutation
     def add_actor(self, info, input: AddActorInput) -> Actor:
