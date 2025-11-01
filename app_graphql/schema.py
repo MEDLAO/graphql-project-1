@@ -3,7 +3,7 @@ from dataclasses import asdict
 from auth.utils import require_login
 from auth.users import get_user_by_email, verify_password
 from auth.sessions import create_session, delete_session
-from config import COOKIE_NAME
+from config import COOKIE_NAME, COOKIE_SAMESITE, COOKIE_SECURE
 
 
 @strawberry.type
